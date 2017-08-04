@@ -5,7 +5,7 @@ var stop = document.querySelector('.stop');
 var soundClips = document.querySelector('.sound-clips');
 var canvas = document.querySelector('.visualizer');
 var mainSection = document.querySelector('.main-controls');
-
+var jsonResult = document.querySelector('.json-result');
 // disable stop button while not recording
 
 stop.disabled = true;
@@ -27,13 +27,26 @@ if (navigator.mediaDevices.getUserMedia) {
         var mediaRecorder = new MediaRecorder(stream);
 
         visualize(stream);
+        fetch('http://127.0.0.1:3000',{
+            method: 'POST',
+            data: stream,
+        }).then(function(res) {
+            if (res.status === 201) {
+                var paragraph = document.createElement('p');
+                res.json().then(json => paragraph.innerHTML = json);
+                mediaRecorder.stop();
+            } else if (res.status === 500) {
+                console.error(res.statusText);
+            } else{
+                res.text().then(text => console.log(text));
+            }
+        }).catch(err => console.error(err));
 
         record.onclick = function() {
             mediaRecorder.start();
             console.log(mediaRecorder.state);
             console.log("recorder started");
             record.style.background = "red";
-
             stop.disabled = false;
             record.disabled = true;
         }
@@ -116,7 +129,6 @@ if (navigator.mediaDevices.getUserMedia) {
 
 function visualize(stream) {
     var source = audioCtx.createMediaStreamSource(stream);
-
     var analyser = audioCtx.createAnalyser();
     analyser.fftSize = 2048;
     var bufferLength = analyser.frequencyBinCount;
@@ -124,6 +136,7 @@ function visualize(stream) {
 
     source.connect(analyser);
     //analyser.connect(audioCtx.destination);
+
 
     draw()
 
@@ -163,7 +176,6 @@ function visualize(stream) {
 
         canvasCtx.lineTo(canvas.width, canvas.height/2);
         canvasCtx.stroke();
-
     }
 }
 
