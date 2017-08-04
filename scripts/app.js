@@ -15,6 +15,9 @@ stop.disabled = true;
 var audioCtx = new (window.AudioContext || webkitAudioContext)();
 var canvasCtx = canvas.getContext("2d");
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 //main block for doing the audio recording
 
 if (navigator.mediaDevices.getUserMedia) {
@@ -35,6 +38,8 @@ if (navigator.mediaDevices.getUserMedia) {
             record.style.background = "red";
             stop.disabled = false;
             record.disabled = true;
+            sleep(2000);
+            mediaRecorder.stop();
         }
 
         stop.onclick = function() {
@@ -47,6 +52,8 @@ if (navigator.mediaDevices.getUserMedia) {
 
             stop.disabled = true;
             record.disabled = false;
+            sleep(2000);
+            mediaRecorder.start();
         }
 
         mediaRecorder.onstop = function(e) {
@@ -114,7 +121,6 @@ if (navigator.mediaDevices.getUserMedia) {
                     res.text().then(text => console.log(text));
                 }
             }).catch(err => console.error(err));
-
         }
     }
 
