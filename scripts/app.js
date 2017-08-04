@@ -14,7 +14,7 @@ stop.disabled = true;
 
 var audioCtx = new (window.AudioContext || webkitAudioContext)();
 var canvasCtx = canvas.getContext("2d");
-
+var mediaRecorder;
 //main block for doing the audio recording
 
 if (navigator.mediaDevices.getUserMedia) {
@@ -24,23 +24,9 @@ if (navigator.mediaDevices.getUserMedia) {
     var chunks = [];
 
     var onSuccess = function(stream) {
-        var mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder = new MediaRecorder(stream);
 
         visualize(stream);
-        fetch('http://127.0.0.1:3000',{
-            method: 'POST',
-            data: stream,
-        }).then(function(res) {
-            if (res.status === 201) {
-                var paragraph = document.createElement('p');
-                res.json().then(json => paragraph.innerHTML = json);
-                mediaRecorder.stop();
-            } else if (res.status === 500) {
-                console.error(res.statusText);
-            } else{
-                res.text().then(text => console.log(text));
-            }
-        }).catch(err => console.error(err));
 
         record.onclick = function() {
             mediaRecorder.start();
@@ -136,6 +122,22 @@ function visualize(stream) {
 
     source.connect(analyser);
     //analyser.connect(audioCtx.destination);
+
+    fetch('http://127.0.0.1:3000',{
+        method: 'POST',
+        data: source,
+    }).then(function(res) {
+        if (res.status === 201) {
+            var paragraph = document.createElement('p');
+            res.json().then(json => paragraph.innerHTML = json);
+            mediaRecorder.stop();
+        } else if (res.status === 500) {
+            console.error(res.statusText);
+        } else{
+            console.log("Hello");
+            res.text().then(text => console.log(text));
+        }
+    }).catch(err => console.error(err));
 
 
     draw()
