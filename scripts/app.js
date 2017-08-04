@@ -38,8 +38,6 @@ if (navigator.mediaDevices.getUserMedia) {
             record.style.background = "red";
             stop.disabled = false;
             record.disabled = true;
-            sleep(2000);
-            mediaRecorder.stop();
         }
 
         stop.onclick = function() {
@@ -52,8 +50,6 @@ if (navigator.mediaDevices.getUserMedia) {
 
             stop.disabled = true;
             record.disabled = false;
-            sleep(2000);
-            mediaRecorder.start();
         }
 
         mediaRecorder.onstop = function(e) {
@@ -143,7 +139,6 @@ function visualize(stream) {
 
     source.connect(analyser);
     //analyser.connect(audioCtx.destination);
-
 
     draw()
 
