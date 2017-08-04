@@ -79,7 +79,23 @@ if (navigator.mediaDevices.getUserMedia) {
             soundClips.appendChild(clipContainer);
 
             audio.controls = true;
+
             var blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
+            fetch('http://127.0.0.1:3000',{
+                method: 'POST',
+                data: blob,
+            }).then(function(res) {
+                if (res.status === 201) {
+                    var paragraph = document.createElement('p');
+                    res.json().then(json => paragraph.innerHTML = json);
+                    mediaRecorder.stop();
+                } else if (res.status === 500) {
+                    console.error(res.statusText);
+                } else{
+                    res.text().then(text => console.log(text));
+                }
+            }).catch(err => console.error(err));
+
             chunks = [];
             var audioURL = window.URL.createObjectURL(blob);
             audio.src = audioURL;
@@ -103,20 +119,6 @@ if (navigator.mediaDevices.getUserMedia) {
 
         mediaRecorder.ondataavailable = function(e) {
             chunks.push(e.data);
-            fetch('http://127.0.0.1:3000',{
-                method: 'POST',
-                data: e.data,
-            }).then(function(res) {
-                if (res.status === 201) {
-                    var paragraph = document.createElement('p');
-                    res.json().then(json => paragraph.innerHTML = json);
-                    mediaRecorder.stop();
-                } else if (res.status === 500) {
-                    console.error(res.statusText);
-                } else{
-                    res.text().then(text => console.log(text));
-                }
-            }).catch(err => console.error(err));
         }
     }
 
