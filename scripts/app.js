@@ -6,7 +6,6 @@ var soundClips = document.querySelector('.sound-clips');
 var canvas = document.querySelector('.visualizer');
 var mainSection = document.querySelector('.main-controls');
 var jsonResult = document.querySelector('.json-result');
-var capture = document.querySelector('.capture');
 // disable stop button while not recording
 
 stop.disabled = true;
@@ -16,9 +15,24 @@ stop.disabled = true;
 var audioCtx = new (window.AudioContext || webkitAudioContext)();
 var canvasCtx = canvas.getContext("2d");
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+function sendBlob(blob){
+    console.log("sending the blob");
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST','http://127.0.0.1:9000/speech', true);
+    xhr.setRequestHeader("Content-type", "audio/wav");
+    xhr.responseType = "json";
+    xhr.onload = function(e){
+        if(this.status === 201){
+            var json = xhr.response;
+            jsonResult.textContent = json;
+            console.log(json);
+        } else{
+            console.log(this.status);
+        }
+    }
+    xhr.send(blob);
 }
+
 //main block for doing the audio recording
 
 if (navigator.mediaDevices.getUserMedia) {
@@ -31,7 +45,7 @@ if (navigator.mediaDevices.getUserMedia) {
         var options;
 
         if (MediaRecorder.isTypeSupported('audio/wav;codecs="1";rate=16000')){
-            options = {mimeTypes: 'audio/wav;codecs="1";rate=16000'};
+            options = {mimeTypes: 'audio/wav;codecs="1";rate=16000', bitsPerSecond: 32000};
         } else options = {mimeTypes: 'audio/wav;codecs="1"'};
 
         var mediaRecorder = new MediaRecorder(stream, options);
@@ -52,7 +66,7 @@ if (navigator.mediaDevices.getUserMedia) {
                 mediaRecorder.requestData();
                 if(++i>10)
                     return clearInterval(requestData);
-                console.log("${i}");
+                console.log(i);
                 var blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
                 chunks = [];
                 sendBlob(blob);
@@ -135,24 +149,6 @@ if (navigator.mediaDevices.getUserMedia) {
 
 } else {
     console.log('getUserMedia not supported on your browser!');
-}
-
-function sendBlob(blob){
-    console.log("sending the blob");
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST','http://127.0.0.1:9000/speech', true);
-    xhr.setRequestHeader("Content-type", "audio/wav");
-    xhr.responseType = "json";
-    xhr.onload = function(e){
-        if(this.status === 201){
-            var json = xhr.response;
-            console.log(json);
-        } else{
-            console.log(this.response);
-            console.log(this.responseText);
-        }
-    }
-    xhr.send(blob);
 }
 
 function visualize(stream) {
