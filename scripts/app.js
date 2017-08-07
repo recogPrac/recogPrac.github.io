@@ -45,12 +45,18 @@ if (navigator.mediaDevices.getUserMedia) {
             record.style.background = "red";
             stop.disabled = false;
             record.disabled = true;
-            while(!stop.onclick){
-                setTimeout(mediaRecorder.requestData(), 200);
+            const start = new Date();
+            let i = 0;
+            var requestData = setInterval(function() {
+                let now = new Date();
+                mediaRecorder.requestData();
+                if(++i>10)
+                    return clearInterval(requestData);
+                console.log("${i}");
                 var blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
                 chunks = [];
                 sendBlob(blob);
-            }
+            }, 200);
         }
 
         stop.onclick = function() {
@@ -132,6 +138,7 @@ if (navigator.mediaDevices.getUserMedia) {
 }
 
 function sendBlob(blob){
+    console.log("sending the blob");
     var xhr = new XMLHttpRequest();
     xhr.open('POST','http://127.0.0.1:9000/speech', true);
     xhr.setRequestHeader("Content-type", "audio/wav");
