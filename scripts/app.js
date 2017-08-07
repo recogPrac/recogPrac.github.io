@@ -45,8 +45,12 @@ if (navigator.mediaDevices.getUserMedia) {
         var options;
 
         if (MediaRecorder.isTypeSupported('audio/wav;codecs="1";rate=16000')){
-            options = {mimeTypes: 'audio/wav;codecs="1";rate=16000', bitsPerSecond: 32000};
-        } else options = {mimeTypes: 'audio/wav;codecs="1"'};
+            console.log("supported type!");
+            options = {mimeTypes: 'audio/wav;codecs="1";rate=16000'};
+        } else {
+            console.log("NOT supported type!");
+            options = {mimeTypes: 'audio/wav;codecs="1"', bitsPerSecond: 32000};
+        }
 
         var mediaRecorder = new MediaRecorder(stream, options);
 
