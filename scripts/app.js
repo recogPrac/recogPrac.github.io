@@ -133,7 +133,7 @@ if (navigator.mediaDevices.getUserMedia) {
 
 function sendBlob(blob){
     var xhr = new XMLHttpRequest();
-    xhr.open('POST','/speech', true);
+    xhr.open('POST','http://127.0.0.1/speech', true);
     xhr.setRequestHeader("Content-type", "audio/wav");
     xhr.responseType = "json";
     xhr.onload = function(e){
