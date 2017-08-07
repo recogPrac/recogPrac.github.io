@@ -6,6 +6,7 @@ var soundClips = document.querySelector('.sound-clips');
 var canvas = document.querySelector('.visualizer');
 var mainSection = document.querySelector('.main-controls');
 var jsonResult = document.querySelector('.json-result');
+var capture = document.querySelector('.capture');
 // disable stop button while not recording
 
 stop.disabled = true;
@@ -27,7 +28,13 @@ if (navigator.mediaDevices.getUserMedia) {
     var chunks = [];
 
     var onSuccess = function(stream) {
-        var mediaRecorder = new MediaRecorder(stream);
+        var options;
+
+        if (MediaRecorder.isTypeSupported('audio/wav;codecs="1";rate=16000')){
+            options = {mimeTypes: 'audio/wav;codecs="1";rate=16000'};
+        } else options = {mimeTypes: 'audio/wav;codecs="1"'};
+
+        var mediaRecorder = new MediaRecorder(stream, options);
 
         visualize(stream);
 
@@ -46,10 +53,19 @@ if (navigator.mediaDevices.getUserMedia) {
             console.log("recorder stopped");
             record.style.background = "";
             record.style.color = "";
-            // mediaRecorder.requestData();
 
             stop.disabled = true;
             record.disabled = false;
+        }
+
+        capture.onclick = function() {
+            mediaRecorder.requestData();
+        }
+
+        mediaRecorder.onrequestData = function(){
+            var blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
+            chunks = [];
+            sendBlob(blob);
         }
 
         mediaRecorder.onstop = function(e) {
@@ -80,23 +96,9 @@ if (navigator.mediaDevices.getUserMedia) {
 
             audio.controls = true;
 
-            var blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
-            fetch('http://127.0.0.1:3000',{
-                method: 'POST',
-                data: blob,
-            }).then(function(res) {
-                if (res.status === 201) {
-                    var paragraph = document.createElement('p');
-                    res.json().then(json => paragraph.innerHTML = json);
-                    mediaRecorder.stop();
-                } else if (res.status === 500) {
-                    console.error(res.statusText);
-                } else{
-                    res.text().then(text => console.log(text));
-                }
-            }).catch(err => console.error(err));
-
+            var blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
             chunks = [];
+
             var audioURL = window.URL.createObjectURL(blob);
             audio.src = audioURL;
             console.log("recorder stopped");
@@ -130,6 +132,23 @@ if (navigator.mediaDevices.getUserMedia) {
 
 } else {
     console.log('getUserMedia not supported on your browser!');
+}
+
+function sendBlob(blob){
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST','/speech', true);
+    xhr.setRequestHeader("Content-type", "audio/wav");
+    xhr.responseType = "json";
+    xhr.onload = function(e){
+        if(this.status === 201){
+            var json = xhr.response;
+            console.log(json);
+        } else{
+            console.log(this.response);
+            console.log(this.responseText);
+        }
+    }
+    xhr.send(blob);
 }
 
 function visualize(stream) {
