@@ -60,7 +60,7 @@ if (navigator.mediaDevices.getUserMedia) {
             var requestData = setInterval(function() {
                 let now = new Date();
                 mediaRecorder.requestData();
-                if(++i>10)
+                if(++i>10 || stop.onclick())
                     return clearInterval(requestData);
                 console.log(i);
                 var blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
