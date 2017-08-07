@@ -42,21 +42,7 @@ if (navigator.mediaDevices.getUserMedia) {
     var chunks = [];
 
     var onSuccess = function(stream) {
-        var options;
-
-        if (MediaRecorder.isTypeSupported('audio/wav;codecs="1";rate=16000')){
-            console.log("supported type!");
-            options = {mimeTypes: 'audio/wav;codecs="1";rate=16000'};
-        } else if(MediaRecorder.isTypeSupported('audio/x-wav;codec=pcm;rate=16000)')){
-            console.log("supported type : x-wave rate!");
-            options = {mimeTypes: 'audio/x-wav;codec=pcm;rate=16000)'};
-        } else if(MediaRecorder.isTypeSupported('audio/wav;codecs=pcm;rate=16000')){
-            console.log("supported type! pcm");
-            options = {mimeTypes: 'audio/wav;codecs=pcm;rate=16000'};
-        } else if(MediaRecorder.isTypeSupported('audio/wav')){
-            console.log("only audio supported");
-            options = {mimeTypes: 'audio/wav'};
-        }
+        var options = {audioBitsPerSecond: 32000};
 
         var mediaRecorder = new MediaRecorder(stream, options);
 
@@ -78,6 +64,8 @@ if (navigator.mediaDevices.getUserMedia) {
                     return clearInterval(requestData);
                 console.log(i);
                 var blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
+                console.log(blob.type);
+                console.log(blob.size);
                 chunks = [];
                 sendBlob(blob);
             }, 200);
@@ -124,6 +112,7 @@ if (navigator.mediaDevices.getUserMedia) {
 
             var blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
             chunks = [];
+            console.log(blob.type);
             sendBlob(blob);
 
             var audioURL = window.URL.createObjectURL(blob);
