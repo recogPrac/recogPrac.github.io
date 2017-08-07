@@ -47,9 +47,15 @@ if (navigator.mediaDevices.getUserMedia) {
         if (MediaRecorder.isTypeSupported('audio/wav;codecs="1";rate=16000')){
             console.log("supported type!");
             options = {mimeTypes: 'audio/wav;codecs="1";rate=16000'};
-        } else {
-            console.log("NOT supported type!");
-            options = {mimeTypes: 'audio/wav;codecs="1"', bitsPerSecond: 32000};
+        } else if(MediaRecorder.isTypeSupported('audio/x-wav;codec=pcm;rate=16000)')){
+            console.log("supported type : x-wave rate!");
+            options = {mimeTypes: 'audio/x-wav;codec=pcm;rate=16000)'};
+        } else if(MediaRecorder.isTypeSupported('audio/wav;codecs=pcm;rate=16000')){
+            console.log("supported type! pcm");
+            options = {mimeTypes: 'audio/wav;codecs=pcm;rate=16000'};
+        } else if(MediaRecorder.isTypeSupported('audio/wav')){
+            console.log("only audio supported");
+            options = {mimeTypes: 'audio/wav'};
         }
 
         var mediaRecorder = new MediaRecorder(stream, options);
