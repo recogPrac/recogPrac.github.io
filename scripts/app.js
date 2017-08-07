@@ -45,6 +45,12 @@ if (navigator.mediaDevices.getUserMedia) {
             record.style.background = "red";
             stop.disabled = false;
             record.disabled = true;
+            while(!stop.onclick){
+                setTimeout(mediaRecorder.requestData(), 200);
+                var blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
+                chunks = [];
+                sendBlob(blob);
+            }
         }
 
         stop.onclick = function() {
@@ -56,16 +62,6 @@ if (navigator.mediaDevices.getUserMedia) {
 
             stop.disabled = true;
             record.disabled = false;
-        }
-
-        capture.onclick = function() {
-            mediaRecorder.requestData();
-        }
-
-        mediaRecorder.onrequestData = function(){
-            var blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
-            chunks = [];
-            sendBlob(blob);
         }
 
         mediaRecorder.onstop = function(e) {
@@ -98,6 +94,7 @@ if (navigator.mediaDevices.getUserMedia) {
 
             var blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
             chunks = [];
+            sendBlob(blob);
 
             var audioURL = window.URL.createObjectURL(blob);
             audio.src = audioURL;
