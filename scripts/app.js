@@ -6,6 +6,8 @@ var soundClips = document.querySelector('.sound-clips');
 var canvas = document.querySelector('.visualizer');
 var mainSection = document.querySelector('.main-controls');
 var jsonResult = document.querySelector('.json-result');
+var form = document.forms.namedItem("fileInfo");
+var oOutput = document.querySelector(".resultForm");
 // disable stop button while not recording
 
 stop.disabled = true;
@@ -17,9 +19,15 @@ var canvasCtx = canvas.getContext("2d");
 
 function sendBlob(blob){
     console.log("sending the blob");
+
+    var oData = new FormData();
+    oData.append("epdFlag", 0);
+    //oData.append("epdFlag",1);
+    //oData.append("epdFlag",2);
+    oData.append("audio", blob);
+
     var xhr = new XMLHttpRequest();
-    xhr.open('POST','http://127.0.0.1:9000/speech', true);
-    xhr.setRequestHeader("Content-type", "audio/wav");
+    xhr.open('POST','http://127.0.0.1:9000/soundData/1');
     xhr.responseType = "json";
     xhr.onload = function(e){
         if(this.status === 201){
@@ -30,11 +38,29 @@ function sendBlob(blob){
             console.log(this.status);
         }
     }
-    xhr.send(blob);
+    xhr.send(oData);
 }
 
-//main block for doing the audio recording
+function init(){
+    console.log("init");
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST','http://127.0.0.1:9000/init', true);
+    xhr.setRequestHeader("Content-type", "application/json");
+    xhr.responseType="json";
+    xhr.onload = function(e){
+        if(this.status === 201){
+            var json = xhr.response;
+            jsonResult.textContent = json;
+            console.log(json);
+        } else{
+            console.log(this.status);
+        }
+    }
+    xhr.send();
+}
+init();
 
+//main block for doing the audio recording
 if (navigator.mediaDevices.getUserMedia) {
     console.log('getUserMedia supported.');
 
@@ -63,13 +89,15 @@ if (navigator.mediaDevices.getUserMedia) {
                 if(++i>10 || stop.onclick())
                     return clearInterval(requestData);
                 console.log(i);
-                var blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
-                console.log(blob.type);
-                console.log(blob.size);
-                chunks = [];
-                sendBlob(blob);
-            }, 200);
-        }
+                if(chunks.size >= 3200){
+                    var blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
+                    console.log(blob.type);
+                    console.log(blob.size);
+                    chunks = [];
+                    sendBlob(blob);
+                }
+            }, 100);
+        }//TODO: 78byte, 640 byte
 
         stop.onclick = function() {
             mediaRecorder.stop();
@@ -113,6 +141,7 @@ if (navigator.mediaDevices.getUserMedia) {
             var blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
             chunks = [];
             console.log(blob.type);
+            console.log(blob.size);
             sendBlob(blob);
 
             var audioURL = window.URL.createObjectURL(blob);
