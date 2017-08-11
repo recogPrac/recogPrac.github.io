@@ -24,20 +24,16 @@
     </section>
 
     <section class="sound-clips">
-
-
     </section>
-    <progress min="0" max="100" value="0">0% complete</progress>
 
-    <form enctype="multipart/form-data" method="post" name="fileinfo">
-        <label>Your email address:</label>
-        <input type="email" autocomplete="on" autofocus name="userid" placeholder="email" required size="32" maxlength="64" /><br />
-        <input type="radio" value="EPD_FLAG_SERVER"/>
-        <input type="radio" value="EPD_FLAG_USER"/>
-        <input type="radio" value="EPD_FLAG_NOT_SELECTED"/>
-        <label>Custom file label:</label>
-        <input type="submit" value="Stash the file!" />
-    </form>
+    <section class="audioUpload">
+        <form enctype="multipart/form-data" method="post" name="fileinfo">
+            <label>Your email address:</label>
+            <input type="email" autocomplete="on" autofocus name="userid" placeholder="email" required size="32" maxlength="64" /><br />
+            <input type="submit" value="Stash the file!" />
+        </form>
+    </section>
+
     <div class="resultForm"></div>
 </div>
 

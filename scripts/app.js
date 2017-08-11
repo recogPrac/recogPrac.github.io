@@ -8,6 +8,7 @@ var mainSection = document.querySelector('.main-controls');
 var jsonResult = document.querySelector('.json-result');
 var form = document.forms.namedItem("fileInfo");
 var oOutput = document.querySelector(".resultForm");
+var sessionId
 // disable stop button while not recording
 
 stop.disabled = true;
@@ -17,7 +18,7 @@ stop.disabled = true;
 var audioCtx = new (window.AudioContext || webkitAudioContext)();
 var canvasCtx = canvas.getContext("2d");
 
-function sendBlob(blob){
+function sendBlob(blob, sessionId, sequenceId){
     console.log("sending the blob");
 
     var oData = new FormData();
@@ -27,7 +28,7 @@ function sendBlob(blob){
     oData.append("audio", blob);
 
     var xhr = new XMLHttpRequest();
-    xhr.open('POST','http://127.0.0.1:9000/soundData/1');
+    xhr.open('POST','http://127.0.0.1:10411/soundData/'+sessionId+'/'+sequenceId);
     xhr.responseType = "json";
     xhr.onload = function(e){
         if(this.status === 201){
@@ -44,20 +45,33 @@ function sendBlob(blob){
 function init(){
     console.log("init");
     var xhr = new XMLHttpRequest();
-    xhr.open('POST','http://127.0.0.1:9000/init', true);
-    xhr.setRequestHeader("Content-type", "application/json");
+    xhr.open('POST','http://127.0.0.1:10411/init', true);
+    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.responseType="json";
     xhr.onload = function(e){
         if(this.status === 201){
             var json = xhr.response;
+            sessionId = json.sessionId;
             jsonResult.textContent = json;
             console.log(json);
         } else{
             console.log(this.status);
         }
     }
-    xhr.send();
+    xhr.send(JSON.stringify({
+        "Version": 261,
+        "CompressionType" : 1,
+        "ClientExtraInfo":{
+            "Platform" : "Android",
+            "Device": "SHW-M110S",
+            "OS": "2.2.1",
+            "FeatVer" : "nscli_ver_1.2.0",
+            "Auth": "NAVER.gyukatsu",
+            "Lang": "Kor"
+        }
+    }));
 }
+
 init();
 
 //main block for doing the audio recording
@@ -82,7 +96,7 @@ if (navigator.mediaDevices.getUserMedia) {
             stop.disabled = false;
             record.disabled = true;
             const start = new Date();
-            let i = 0;
+            let i = 1;
             var requestData = setInterval(function() {
                 let now = new Date();
                 mediaRecorder.requestData();
@@ -94,7 +108,7 @@ if (navigator.mediaDevices.getUserMedia) {
                     console.log(blob.type);
                     console.log(blob.size);
                     chunks = [];
-                    sendBlob(blob);
+                    sendBlob(blob, sessionId, i);
                 }
             }, 100);
         }//TODO: 78byte, 640 byte
