@@ -52,7 +52,7 @@ function init(){
     xhr.onLoad = function(e){
         if(this.status === 201){
             let data = xhr.response;
-            sessionId = data.SessionId;
+            sessionId = data["SessionId"];
             jsonResult.textContent = data;
             console.log(json);
         } else{
@@ -71,7 +71,7 @@ function init(){
             "Lang": "Kor"
         }
     }));
-    return JSON.parse(sessionId)
+    return sessionId
 }
 
 //main block for doing the audio recording
