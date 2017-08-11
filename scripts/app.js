@@ -1,22 +1,22 @@
 // set up basic variables for app
 
-var record = document.querySelector('.record');
-var stop = document.querySelector('.stop');
-var soundClips = document.querySelector('.sound-clips');
-var canvas = document.querySelector('.visualizer');
-var mainSection = document.querySelector('.main-controls');
-var jsonResult = document.querySelector('.json-result');
-var form = document.forms.namedItem("fileInfo");
-var oOutput = document.querySelector(".resultForm");
-var sessionId
+let record = document.querySelector('.record');
+let stop = document.querySelector('.stop');
+let soundClips = document.querySelector('.sound-clips');
+let canvas = document.querySelector('.visualizer');
+let mainSection = document.querySelector('.main-controls');
+let jsonResult = document.querySelector('.json-result');
+let form = document.forms.namedItem("fileInfo");
+let oOutput = document.querySelector(".resultForm");
+
 // disable stop button while not recording
 
 stop.disabled = true;
 
 // visualiser setup - create web audio api context and canvas
 
-var audioCtx = new (window.AudioContext || webkitAudioContext)();
-var canvasCtx = canvas.getContext("2d");
+let audioCtx = new (window.AudioContext || webkitAudioContext)();
+let canvasCtx = canvas.getContext("2d");
 
 function sendBlob(blob, sessionId, sequenceId){
     console.log("sending the blob");
@@ -44,20 +44,21 @@ function sendBlob(blob, sessionId, sequenceId){
 
 function init(){
     console.log("init");
-    var xhr = new XMLHttpRequest();
+    let xhr = new XMLHttpRequest();
+    let sessionId = ""
     xhr.open('POST','http://127.0.0.1:10411/init', true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.responseType="json";
-    xhr.onload = function(e){
+    xhr.onLoad = function(e){
         if(this.status === 201){
-            var json = xhr.response;
+            let json = xhr.response;
             sessionId = json.sessionId;
             jsonResult.textContent = json;
             console.log(json);
         } else{
             console.log(this.status);
         }
-    }
+    };
     xhr.send(JSON.stringify({
         "Version": 261,
         "CompressionType" : 1,
@@ -70,21 +71,21 @@ function init(){
             "Lang": "Kor"
         }
     }));
+    return sessionId
 }
-
-init();
 
 //main block for doing the audio recording
 if (navigator.mediaDevices.getUserMedia) {
     console.log('getUserMedia supported.');
+    let sessionId = init();
 
-    var constraints = { audio: true };
-    var chunks = [];
+    let constraints = { audio: true };
+    let chunks = [];
 
-    var onSuccess = function(stream) {
-        var options = {audioBitsPerSecond: 32000};
+    let onSuccess = function(stream) {
+        let options = {audioBitsPerSecond: 32000};
 
-        var mediaRecorder = new MediaRecorder(stream, options);
+        let mediaRecorder = new MediaRecorder(stream, options);
 
         visualize(stream);
 
@@ -97,14 +98,13 @@ if (navigator.mediaDevices.getUserMedia) {
             record.disabled = true;
             const start = new Date();
             let i = 1;
-            var requestData = setInterval(function() {
-                let now = new Date();
+            let requestData = setInterval(function() {
                 mediaRecorder.requestData();
-                if(++i>10)
+                if(++i>200)
                     return clearInterval(requestData);
                 console.log(i);
                 if(chunks.size >= 3200){
-                    var blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
+                    let blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
                     console.log(blob.type);
                     console.log(blob.size);
                     chunks = [];
@@ -127,12 +127,12 @@ if (navigator.mediaDevices.getUserMedia) {
         mediaRecorder.onstop = function(e) {
             console.log("data available after MediaRecorder.stop() called.");
 
-            var clipName = prompt('Enter a name for your sound clip?','My unnamed clip');
+            let clipName = prompt('Enter a name for your sound clip?','My unnamed clip');
             console.log(clipName);
-            var clipContainer = document.createElement('article');
-            var clipLabel = document.createElement('p');
-            var audio = document.createElement('audio');
-            var deleteButton = document.createElement('button');
+            let clipContainer = document.createElement('article');
+            let clipLabel = document.createElement('p');
+            let audio = document.createElement('audio');
+            let deleteButton = document.createElement('button');
 
             clipContainer.classList.add('clip');
             audio.setAttribute('controls', '');
@@ -152,13 +152,13 @@ if (navigator.mediaDevices.getUserMedia) {
 
             audio.controls = true;
 
-            var blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
+            let blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
             chunks = [];
             console.log(blob.type);
             console.log(blob.size);
             sendBlob(blob);
 
-            var audioURL = window.URL.createObjectURL(blob);
+            let audioURL = window.URL.createObjectURL(blob);
             audio.src = audioURL;
             console.log("recorder stopped");
 
@@ -183,7 +183,7 @@ if (navigator.mediaDevices.getUserMedia) {
         }
     }
 
-    var onError = function(err) {
+    let onError = function(err) {
         console.log('The following error occured: ' + err);
     }
 
@@ -194,11 +194,11 @@ if (navigator.mediaDevices.getUserMedia) {
 }
 
 function visualize(stream) {
-    var source = audioCtx.createMediaStreamSource(stream);
-    var analyser = audioCtx.createAnalyser();
+    let source = audioCtx.createMediaStreamSource(stream);
+    let analyser = audioCtx.createAnalyser();
     analyser.fftSize = 2048;
-    var bufferLength = analyser.frequencyBinCount;
-    var dataArray = new Uint8Array(bufferLength);
+    let bufferLength = analyser.frequencyBinCount;
+    let dataArray = new Uint8Array(bufferLength);
 
     source.connect(analyser);
     //analyser.connect(audioCtx.destination);
@@ -206,7 +206,7 @@ function visualize(stream) {
     draw()
 
     function draw() {
-        WIDTH = canvas.width
+        WIDTH = canvas.width;
         HEIGHT = canvas.height;
 
         requestAnimationFrame(draw);
@@ -221,14 +221,14 @@ function visualize(stream) {
 
         canvasCtx.beginPath();
 
-        var sliceWidth = WIDTH * 1.0 / bufferLength;
-        var x = 0;
+        let sliceWidth = WIDTH * 1.0 / bufferLength;
+        let x = 0;
 
 
-        for(var i = 0; i < bufferLength; i++) {
+        for(let i = 0; i < bufferLength; i++) {
 
-            var v = dataArray[i] / 128.0;
-            var y = v * HEIGHT/2;
+            let v = dataArray[i] / 128.0;
+            let y = v * HEIGHT/2;
 
             if(i === 0) {
                 canvasCtx.moveTo(x, y);
