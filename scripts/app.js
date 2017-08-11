@@ -52,7 +52,7 @@ function init(){
     xhr.onLoad = function(e){
         if(this.status === 201){
             let data = xhr.response;
-            sessionId = data["SessionId"];
+            sessionId = data["sessionId"];
             jsonResult.textContent = data;
             console.log(json);
         } else{
