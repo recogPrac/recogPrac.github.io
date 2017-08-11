@@ -45,15 +45,15 @@ function sendBlob(blob, sessionId, sequenceId){
 function init(){
     console.log("init");
     let xhr = new XMLHttpRequest();
-    let sessionId = ""
+    let sessionId = "";
     xhr.open('POST','http://127.0.0.1:10411/init', true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.responseType="json";
     xhr.onLoad = function(e){
         if(this.status === 201){
-            let json = xhr.response;
-            sessionId = json.sessionId;
-            jsonResult.textContent = json;
+            let data = xhr.response;
+            sessionId = data.SessionId;
+            jsonResult.textContent = data;
             console.log(json);
         } else{
             console.log(this.status);
@@ -71,7 +71,7 @@ function init(){
             "Lang": "Kor"
         }
     }));
-    return sessionId
+    return JSON.parse(sessionId)
 }
 
 //main block for doing the audio recording
