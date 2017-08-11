@@ -100,7 +100,7 @@ if (navigator.mediaDevices.getUserMedia) {
             var requestData = setInterval(function() {
                 let now = new Date();
                 mediaRecorder.requestData();
-                if(++i>10 || stop.onclick())
+                if(++i>10)
                     return clearInterval(requestData);
                 console.log(i);
                 if(chunks.size >= 3200){
