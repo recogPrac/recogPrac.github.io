@@ -5,10 +5,11 @@ let stop = document.querySelector('.stop');
 let soundClips = document.querySelector('.sound-clips');
 let canvas = document.querySelector('.visualizer');
 let mainSection = document.querySelector('.main-controls');
-let jsonResult = document.querySelector('.json-result');
+let jsonResult = document.querySelector('.jsonResult');
 let form = document.forms.namedItem("fileInfo");
 let oOutput = document.querySelector(".resultForm");
-
+let sessionId = "";
+let sendBlobCall = 0;
 // disable stop button while not recording
 
 stop.disabled = true;
@@ -18,25 +19,31 @@ stop.disabled = true;
 let audioCtx = new (window.AudioContext || webkitAudioContext)();
 let canvasCtx = canvas.getContext("2d");
 
-function sendBlob(blob, sessionId, sequenceId){
+function sendBlob(blob){
     console.log("sending the blob");
 
-    var oData = new FormData();
-    oData.append("epdFlag", 0);
+    let oData = new FormData();
+    //oData.append("epdFlag", 0);
     //oData.append("epdFlag",1);
     //oData.append("epdFlag",2);
-    oData.append("audio", blob);
+    console.log(blob);
+    oData.append('audio', blob);
+    console.log(oData.get('audio'));
 
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST','http://127.0.0.1:10411/soundData/'+sessionId+'/'+sequenceId);
+    let xhr = new XMLHttpRequest();
+    console.log(sessionId);
+    console.log(++sendBlobCall);
+    let path = "http://127.0.0.1:10411/soundData/" + sessionId + "/" + sendBlobCall;
+    console.log(path);
+    xhr.open('POST', path);
     xhr.responseType = "json";
     xhr.onload = function(e){
-        if(this.status === 201){
-            var json = xhr.response;
-            jsonResult.textContent = json;
-            console.log(json);
-        } else{
+        if(this.status !== 200){
             console.log(this.status);
+        } else if (this.status === 200 && this.response !== null){
+            let result = this.response;
+            jsonResult.innerHTML = JSON.stringify(result);
+            console.log(result);
         }
     }
     xhr.send(oData);
@@ -45,20 +52,21 @@ function sendBlob(blob, sessionId, sequenceId){
 function init(){
     console.log("init");
     let xhr = new XMLHttpRequest();
-    let sessionId = "";
     xhr.open('POST','http://127.0.0.1:10411/init', true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    //xhr.setRequestHeader("x-clova-request-id", "1");
     xhr.responseType="json";
-    xhr.onLoad = function(e){
-        if(this.status === 201){
+    xhr.onload = function(e){
+        console.log(this.status);
+        if(this.status === 200){
+            console.log("Json expected");
             let data = xhr.response;
-            sessionId = data["sessionId"];
-            jsonResult.textContent = data;
-            console.log(json);
+            sessionId = data['sessionId'];
+            console.log(sessionId);
         } else{
             console.log(this.status);
         }
-    };
+    }
     xhr.send(JSON.stringify({
         "Version": 261,
         "CompressionType" : 1,
@@ -71,13 +79,12 @@ function init(){
             "Lang": "Kor"
         }
     }));
-    return sessionId
 }
 
 //main block for doing the audio recording
 if (navigator.mediaDevices.getUserMedia) {
     console.log('getUserMedia supported.');
-    let sessionId = init();
+    init();
 
     let constraints = { audio: true };
     let chunks = [];
@@ -96,21 +103,23 @@ if (navigator.mediaDevices.getUserMedia) {
             record.style.background = "red";
             stop.disabled = false;
             record.disabled = true;
-            const start = new Date();
+            //const start = new Date();
             let i = 1;
+            let j = 1;
             let requestData = setInterval(function() {
                 mediaRecorder.requestData();
-                if(++i>200)
+                if(++i > 50)
                     return clearInterval(requestData);
-                console.log(i);
-                if(chunks.size >= 3200){
+                console.log(chunks.length);
+                if(chunks.length >= 5){
+                    console.log(++j);
                     let blob = new Blob(chunks, { 'type' : 'audio/wav;codecs=pcm;rate=16000' });
                     console.log(blob.type);
                     console.log(blob.size);
                     chunks = [];
-                    sendBlob(blob, sessionId, i);
+                    sendBlob(blob);
                 }
-            }, 100);
+            }, 200);
         }//TODO: 78byte, 640 byte
 
         stop.onclick = function() {
@@ -168,8 +177,8 @@ if (navigator.mediaDevices.getUserMedia) {
             }
 
             clipLabel.onclick = function() {
-                var existingName = clipLabel.textContent;
-                var newClipName = prompt('Enter a new name for your sound clip?');
+                let existingName = clipLabel.textContent;
+                let newClipName = prompt('Enter a new name for your sound clip?');
                 if(newClipName === null) {
                     clipLabel.textContent = existingName;
                 } else {
